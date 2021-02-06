@@ -1,5 +1,5 @@
 ---
-title: "Introduction to Open Science"
+title: "Introduction to Data Visualization in R"
 output: github_document
 ---
 
@@ -22,13 +22,13 @@ knitr::opts_chunk$set(echo = TRUE)
 <img src="https://img.icons8.com/ios/250/000000/calendar.png" align="left" width = "20"   class="logo"/>
 ```
 
-  January 20 2021
+  February 10 & 20, 2021
  
 ```{=html}
 <img src="https://img.icons8.com/ios/250/000000/clock.png" align="left" width = "20"   class="logo"/>
 ```  
 
-  14:00 - 16:00
+  10:00 - 12:00, 14:00 - 16:00
  
 ```{=html}
 <img src="https://img.icons8.com/ios/250/000000/marker.png" align="left" width = "20"   class="logo"/>
@@ -41,68 +41,21 @@ knitr::opts_chunk$set(echo = TRUE)
 
 ## Course Aims
 
-1. To familiarise with the principles of transparency, reproducibility and accessibility that inspire the Open Science movement.
+1. To familiarise with the good practices of data visualization.
 
-2. To introduce current topics in Open Science spanning pre-registration, data sharing, reproducible research, and open publication.
+2. To introduce the distinction between explorative and insightful data visualization.
 
-3. To teach practical skill for more open and reproducible research. 
+3. To teach the use of R package ggplot for data visualization. 
 
  
 
 ## Objectives
 
-At the end of the course the students should be able to create a reproducible workflow from start to finish. This will include creating RMarkdown executable reports, setting up and performing version control with GitHub, and integrating the workflow with the Open Science Framework.
+At the end of the course the students should be able to choose the right visualization, scale and color palette to visualise simple to complex multidimentional data. They should be further able to produce simple plots using ggplot.
 
  
 
-## Pre-work
 
- 
-
-Please do the following Git/GitHub prep in advance:
-
- 
-
-1.  Create a GitHub account at <https://github.com>, if you don't already have one. A few tips:
-
-    -   For username, I recommend all lower-case letters, as short as you can.
-
-    -   I suggest using your ".ac.uk" email, since you can request free private repositories via GitHub Education.
-
-    -   Ideally incorporate your actual name, it makes your username easier for people to remember.
-
-    -   Re-use your username from other contexts e.g. Twitter.
-
-         
-
-         
-
-2.  Log into your GitHub account, go to "repositories" and create a new repository called "os_repo":\
-
-    ![](Pictures/github.png){width="70%"}
-
- 
-
- 
-
-3.  Call the repository "os-repo", add a description, make it public, create a README FILE.\
-    Please, just skip the Add gitignore and Add a license options.
-
-    \
-    ![](Pictures/Create.png){width="70%"}
-
-     
-
-     
-
-4.   Install Git from here: <http://git-scm.com/downloads>.\
-    You can find the instructions to install Git here: <https://git-scm.com/book/en/v2/Getting-Started-Installing-Git>.
-    
-
-5.   Install the following packages:    
-```{r eval=FALSE, message=FALSE, warning=FALSE, include=TRUE}
-install.packages(c('rmarkdown','tinytex','gh','usethis','gitcreds'))
-```
     
 
 ------------------------------------------------------------------------
@@ -115,6 +68,7 @@ install.packages(c('rmarkdown','tinytex','gh','usethis','gitcreds'))
 
 -   **Ms Lena Dorfschmidt** - *Department of Psychiatry* \|  `r fa("envelope", height = 12, fill = "steelblue")` [ld548\@cam.ac.uk](mailto:ld548@cam.ac.uk)
 
+-   **Mr Lennart Spindler** - *Division of Anaesthesia* \|  `r fa("envelope", height = 12, fill = "steelblue")` [lrbs2@cam.ac.uk](mailto:lrbs2@cam.ac.uk)
 
  
 
