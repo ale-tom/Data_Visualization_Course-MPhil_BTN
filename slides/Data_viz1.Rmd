@@ -1,0 +1,68 @@
+---
+title: "Intro to Data viz 1"
+subtitle: "<br/> "
+author: 
+institute: "<br/>Alessandro Tomassini | Guest Lecture | 10 February 2021"
+date: 
+output:
+  xaringan::moon_reader:
+    lib_dir: libs
+    seal: false
+    nature:
+      ratio: '16:9'
+      highlightStyle: github
+      highlightLines: true
+      countIncrementalSlides: false
+      titleSlideClass: [center, middle]
+---
+class:  center, middle
+```{r setup, include=FALSE}
+options(htmltools.dir.version = FALSE)
+library(xaringanExtra)
+xaringanExtra::use_tile_view()
+xaringanExtra::use_tachyons()
+xaringanExtra::use_panelset()
+xaringanExtra::use_editable()
+```
+
+
+
+
+
+<img style="position: absolute; top: 0; right: 0; border: 0; margin: 10px 50px" src="/pictures/logo_uni.jpg" width = "250px" >
+
+
+
+## Introduction to Data Visualization in R
+
+</br>
+
+# Part 1
+
+</br>
+</br>
+
+
+.large[Alessandro Tomassini | Lena Dorfschmidt | Lennart Spindler | 10 February 2020]
+
+
+
+
+---
+# Alessandro
+
+
+---
+
+# Lennard
+
+
+---
+# Lena
+
+
+---
+class:  center, middle
+
+#Thank you for your attention
+
