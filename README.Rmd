@@ -66,9 +66,9 @@ At the end of the course the students should be able to choose the right visuali
 
 -   **Dr Alessandro Tomassini** - *MRC Cognition and Brain Sciences Unit* \|  `r fa("envelope", height = 12, fill = "steelblue")`  [alessandro.tomassini\@mrc-cbu.cam.ac.uk](mailto:alessandro.tomassini@mrc-cbu.cam.ac.uk)
 
--   **Ms Lena Dorfschmidt** - *Department of Psychiatry* \|  `r fa("envelope", height = 12, fill = "steelblue")` [ld548\@cam.ac.uk](mailto:ld548@cam.ac.uk)
-
 -   **Mr Lennart Spindler** - *Division of Anaesthesia* \|  `r fa("envelope", height = 12, fill = "steelblue")` [lrbs2@cam.ac.uk](mailto:lrbs2@cam.ac.uk)
+
+-   **Ms Lena Dorfschmidt** - *Department of Psychiatry* \|  `r fa("envelope", height = 12, fill = "steelblue")` [ld548\@cam.ac.uk](mailto:ld548@cam.ac.uk)
 
  
 

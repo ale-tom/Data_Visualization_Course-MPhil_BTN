@@ -43,7 +43,7 @@ xaringanExtra::use_editable()
 </br>
 
 
-.large[Alessandro Tomassini | Lena Dorfschmidt | Lennart Spindler | 10 February 2020]
+.large[Alessandro Tomassini | Lennart Spindler | Lena Dorfschmidt | 10 February 2020]
 
 
 
