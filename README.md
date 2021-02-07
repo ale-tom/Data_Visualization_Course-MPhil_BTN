@@ -25,8 +25,8 @@ Zoom
 
 1.  To familiarise with the good practices of data visualization.
 
-2.  To introduce the distinction between explorative and insightful data
-    visualization.
+2.  To introduce the distinction between explorative and explanatory
+    data visualization.
 
 3.  To teach the use of R package ggplot for data visualization.
 
