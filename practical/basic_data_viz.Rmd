@@ -1,0 +1,187 @@
+---
+title: "R Markdown Tutorial"
+output: 
+  rmdformats::robobook:
+    #self_contained: true
+    thumbnails: false
+    lightbox: true
+---
+
+This is an introduction to data visualization (in R).
+
+
+We will be using `ggplot2` to plot our data. Let's make sure you have that installed. 
+
+```{r echo = FALSE}
+if (!require("ggplot2")) install.packages("ggplot2")
+library(ggplot2)
+```
+
+We will use the data from the Baker 2016 paper, again.
+
+```{r}
+# Load in our data:
+baker2016 = read.csv('baker_2016_edited.txt',sep = "\t")
+```
+
+```{r, echo=FALSE}
+knitr::kable(
+  head(baker2016[,c(26,9,16,18)]), # This is the table we will plot
+  booktabs = TRUE) # We determine the formatting style as 'booktabs'
+```
+
+
+The basic structure of a gpplot looks as follows. You call `ggplot`, pass over some `data`, specify aesthetics using `aes()` and detmine the geometry using one (or several) of the following (or many more) options:
+
+- `geom_point()`
+- `geom_bar()`
+- `geom_boxplot()`
+- `geom_col()`
+- `geom_hist()`
+- `geom_density()`
+
+```{r eval=F, echo=F}
+ggplot(data, aes(x = x)) + 
+  geom_bar()
+```
+
+
+Let's create our first plot of the data. We are plotting a barplot of the data's column `familiar_reproducibility` which (non surprisingly) shows us how familiary respondents were with the term 'Open Science'.
+
+```{r}
+ggplot(baker2016, aes(x= flagged)) + 
+  geom_bar()
+```
+
+Now imagine we wanted to use that same plot structure to plot some other variable, i.e the respondents research field. To do so, we'd just replace `x=familiar_reproducibility` with `x=field`. Easy. Remember, you can check what other columns are available by running `colnames(baker2016)` on the command line. Try out a few. 
+
+
+
+# What is your message?
+
+
+```{r message=FALSE, warning=FALSE}
+ggplot(baker2016, aes(group= field, fill=field, x = proportion_reproducible)) + 
+  geom_histogram(stat='count')
+```
+
+```{r message=FALSE, warning=FALSE}
+ggplot(baker2016, aes(group= field, fill=field, x = proportion_reproducible)) + 
+  geom_histogram(stat = 'density') + 
+  facet_wrap(facets = baker2016$field)
+```
+
+
+
+# Statistics in figures - or how not to fool your audience (and yourself)
+
+
+Here, I am creating an artificial dataset to illustrate some points on how (not to) plot your data. 
+
+```{r message=FALSE}
+response1 = rnorm(n = 1000, mean = 10, sd = c(1,2))
+response2 = rnorm(n = 1000, mean = c(2,3), sd = 1)
+response3 = rnorm(n = 1000, mean = c(4,5), sd = c(1,1.5))
+group = rep(letters[1:2], length.out = 100)
+df = data.frame(group = as.factor(group), response1=response1, response2=response2, response3=response3)
+
+```
+
+You may think it's a good idea to first plot this data as a barplot, displaying the mean value for `response1` in groups `a` and `b`. This is what such a plot would look like:
+```{r}
+ggplot(df, aes(x=group,y=response1, color=group, fill=group, alpha=0.2)) + 
+  geom_bar(stat='summary', fun=mean) 
+  
+```
+Now you may have noticed that when I created the data, I intentionally created both groups to have the same mean value. However, their standard deviations are very different!
+
+The following plots display the exact same data - but now in a more useful format. 
+```{r, figures-side, fig.show="hold", out.width="50%", message=FALSE, warning=FALSE}
+
+par(mfrow=c(2,1))
+ggplot(df, aes(x=group,y=response1, color=group, fill=group, alpha=0.2)) + 
+  geom_violin()
+
+ggplot(df, aes(x=group,y=response1, color=group, fill=group, alpha=0.2)) + 
+  geom_boxplot()
+```
+
+
+# Wide and Long Format
+
+The data as it is right now is in the so-called *wide format*. For many types of plots that maynot be useful. 
+
+```{r, fig.show="hold", out.width="50%"}
+library(tidyr)
+
+# Get data from wide into long format
+data_wide = baker2016[,c(20,21,27)]
+data_long = gather(data_wide, question, response, 1:2)
+
+# Delete responses where participants couldn't remember the result
+data_long = data_long[-which((data_long$response == "I can't remember")),]
+
+```
+
+
+Plot data
+
+```{r}
+ggplot(data_long, aes(x = field, fill=response)) + 
+  #geom_bar(stat='count',position = "dodge")+
+  geom_bar(aes(y = ..count../tapply(..count.., ..x.. ,sum)[..x..]), position = 'dodge',group = 1) +
+  coord_flip()
+
+```
+
+
+# Prettier Plots
+
+You can change a whole range of aspects about a theme. A comprehensive list of options can be found [here](https://ggplot2.tidyverse.org/reference/theme.html). Here are a few basic things to get started with:
+
+## Axis labels
+
+Add a title using `ggtitle('Your title goes here.')` and change the axis lables using `xlab('X axis title')` and `ylab('X axis title')`.
+
+```{r}
+ggplot(data_long, aes(x = field, fill=response)) + 
+  geom_bar(aes(y = ..count../tapply(..count.., ..x.. ,sum)[..x..]), position = 'dodge',group = 1) +
+  ylab('Percentage')+
+  xlab('')+
+  ggtitle('Have you ever tried to replicate results from other groups?')+
+  coord_flip()
+```
+
+## Change the theme:
+Ggplot has built in [themes](https://ggplot2.tidyverse.org/reference/ggtheme.html) that you can make use of. These include: `theme_bw()`, `theme_classic()`, and `theme_void()`. Try out a few and see the effects on this plot:
+
+```{r}
+ggplot(data_long, aes(x = field, fill=response)) + 
+  geom_bar(aes(y = ..count../tapply(..count.., ..x.. ,sum)[..x..]), position = 'dodge',group = 1) +
+  ylab('Percentage')+
+  xlab('')+
+  ggtitle('Have you ever tried to replicate results from other groups?')+
+  coord_flip()+
+  theme_bw()
+```
+
+## Edit legend
+
+By default, ggplot uses the factor names from your data in the legend, and the respective variable name as the title. 
+
+There are a variety of ways you can edit the legend. Here, we will use `labs()`. 
+
+Since our legend refers to the fill color of the plot, you will have to reference *fill* when editing it. 
+You may not want to have a legent title at all, in which case you could add: `labs(fill='')`. Or maybe you would like to rename it to *Questionnaire Response* using `labs(fill='Questionnaire Response')`? 
+
+
+```{r}
+ggplot(data_long, aes(x = field, fill=response)) + 
+  geom_bar(aes(y = ..count../tapply(..count.., ..x.. ,sum)[..x..]), position = 'dodge',group = 1) +
+  ylab('Percentage')+
+  xlab('')+
+  ggtitle('Have you ever tried to replicate results from other groups?')+
+  coord_flip()+
+  theme_bw() +
+  labs(fill='') 
+```
