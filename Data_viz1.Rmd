@@ -29,7 +29,7 @@ xaringanExtra::use_editable()
 
 
 
-<img style="position: absolute; top: 0; right: 0; border: 0; margin: 10px 50px" src="/pictures/logo_uni.jpg" width = "250px" >
+<img style="position: absolute; top: 0; right: 0; border: 0; margin: 10px 50px" src="pictures/logo_uni.jpg" width = "250px" >
 
 
 
@@ -70,12 +70,12 @@ xaringanExtra::use_editable()
 .pull-left[
 Tables are generally used where users will look up a specific measurement
 
-<img src="/pictures/table.png" style = "width: 60%" />
+<img src="pictures/table.png" style = "width: 60%" />
 ]
 .pull-right[
 Charts are used to show patterns or relationship in the data for one or more variables
 
-<img src="/pictures/plot1.png" style = "width: 100%" />
+<img src="pictures/plot1.png" style = "width: 100%" />
 
 ]
 
@@ -86,11 +86,14 @@ Charts are used to show patterns or relationship in the data for one or more var
 **Pre-attentive** attributes: differences in line length, shape, orientation, distance, and color can be distinguished readily without processing efforts.
 .pull-left[Attentive: count the 9s
 
-<img src="/pictures/att.png" style = "width: 90%" />
+<img src="pictures/att.png" style = "width: 90%" />
 ]
+
+--
+
 .pull-right[Pre-attentive: count the 9s
 
-<img src="/pictures/preatt.png" style = "width: 90%" />
+<img src="pictures/preatt.png" style = "width: 90%" />
 ]
 </br>
 </br>
@@ -101,8 +104,59 @@ Charts are used to show patterns or relationship in the data for one or more var
 # Visual  Perception & Data Visualizaion
 Effective data visualization exploits pre-attentive processing and attributes
 
-<img src="/pictures/prepost.png" style = "width: 80%" />
+<img src="pictures/prepost.png" style = "width: 80%" />
 
+
+---
+# Data Visualization vs Infographics
+**Data visualization** is usually often **aesthetically barren** and **data-rich**
+
+**Infographics** is **aesthetically rich** (to draw attention) and relatively **data-poor** (custom treatment of the information)
+
+.center[<img src="pictures/infographics.jpg" style = "width: 50%" />]
+
+
+---
+#Eploration vs Explanation
+The two serve different purposes, some tools and approaches are appropriate for one and not for the other.
+.panelset[
+.panel[.panel-name[Exploratory data visualization]
+.pull-left[
+
+* Typically part of the *data analysis* phase.
+
+* Used to get a sense of data points relationship before embarking on any complex modelling exercise.
+
+* Also useful to identify anomalous outliers.
+
+* Generally best done at a high level of granularity.
+
+]
+
+.pull-right[<img src="pictures/exploratory.png" style = "width: 100%" />]
+
+
+]
+
+.panel[.panel-name[Explanatory data visualization]
+.pull-left[
+
+* Typically part of the *presentation* phase.
+
+* Used to convey a *story*.
+
+* It is a process of selecting focused evidence in support of the story you are trying to tell.
+
+* Need to filter out distracting and irrelevant information.
+
+]
+
+.pull-right[<img src="pictures/simpson.jpeg" style = "width: 100%" />]
+
+
+]
+
+]
 ---
 class:  center, middle
 
