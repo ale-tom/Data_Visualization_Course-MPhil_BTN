@@ -1,5 +1,5 @@
 ---
-title: "R Markdown Tutorial"
+title: "Data Visualization Tutorial - Part 2"
 output: 
   rmdformats::robobook:
     #self_contained: true
@@ -25,9 +25,13 @@ if (!require("tidyverse")) install.packages("tidyverse")
 if (!require("patchwork")) install.packages("patchwork")
 if (!require("forcats")) install.packages("forcats")
 if (!require("ggforce")) install.packages("ggforce")
+if (!require("ggeasy")) install.packages("ggeasy")
+
 library(ggplot2)
-library(tidyr)
+library(tidyverse)
 library(forcats)
+library(ggforce)
+library(ggeasy)
 ```
 
 Similarly to the previous practical, we will use the data from the Baker 2016 paper.
@@ -44,7 +48,7 @@ knitr::kable(
 ```
 # What is your story?
 
-In the first practical we noticed that almost the same proportion of participants reported that they were familiar/not familiar with the term 'Open Science'. The participants in the study came from different fields. One possibility is that the dichotomy in familiarity may be related to  how much participants trust the work in their field to be reproducible (e.g. less trust -> more familiarity). We show that this is not the case.
+In the first practical we noticed that almost the same proportion of participants reported that they were familiar/not familiar with the term 'Open Science'. The participants in the study came from different fields. One possibility is that the dichotomy in familiarity may be related to  how much participants trust the work in their field to be reproducible (e.g. less trust -> more familiarity). We show that this is not the case and that confidence in reproducibiity is generally high amongst all the fields.
 
 
 
@@ -145,7 +149,10 @@ df <- baker2016 %>%
       #count the items for each level
       summarise(n = n()) %>%
       #calculate proportion for each level
-      mutate(freq = n/sum(n)) 
+      mutate(freq = n/sum(n))
+     
+      #order factors
+  df$proportion_reproducible <- factor(df$proportion_reproducible,levels = paste0(seq(0,100,10),'%'), ordered = TRUE)
 ```
 ```{r}
       
@@ -207,9 +214,9 @@ We also add a title and subtitle to convey the main message of the plot
 scatterPlot<- scatterPlot+
   #add  text to make the figure more understandable at first glance
   geom_mark_ellipse(aes(filter = field == 'Astronomy', label = 'Astronomy',
-                                  description = 'Low familiarity with Open Science but high trust in the field ')) +
+                                  description = 'Low familiarity with Open Science but high trust in the field '),label.fontsize = 8) +
   geom_mark_ellipse(aes(filter = field == 'Medicine', label = 'Medicine',
-                                  description = 'Low familiarity with Open Science and low trust in the field ')) +
+                                  description = 'Low familiarity with Open Science and low trust in the field '),label.fontsize = 8) +
 #Tidy up labels for readability
    xlab('Trust (ratio)') + ylab('Familiarity (ratio)') +
 #Add title and subtitle so that readers have immediate understanding of the plot  
@@ -229,8 +236,9 @@ heatmap<- heatmap+
   #add legend title
   guides(fill=guide_legend(title="Prop"))+
   #add title and xy labels)
-  labs(title = "Trust in reproducibility", x = "Percentage reproducibility", y = "Field") 
-
+  labs(title = "Trust in reproducibility", x = "Percentage reproducibility", y = "Field") +
+  # rotate xtick labels to avoid orverlap when trying to combine images
+  easy_rotate_x_labels(side = "right")
 #plot it
 heatmap
 ```
@@ -275,14 +283,14 @@ scatterPlot+plot_layout(guides = 'collect') + plot_annotation(tag_levels = c('A'
 
 
 
-Combine altogether. `plot_layout(guides = 'collect')` is needed to align the legends.
+Combine altogether. `plot_layout(guides = 'collect')` sometimes is needed to align the legends.
 `theme(plot.margin = unit(c(0,60,0,0), "pt"))` is to add some space between the plots.
 It will require a bit of fiddling to obtain adjust the figures (e.g. for readibility of percentages)
 
 
 
 ```{r}
-scatterPlot / (hist.familiarity | heatmap)
+scatterPlot / (hist.familiarity + heatmap)
 ```
 
 # Further Resources
