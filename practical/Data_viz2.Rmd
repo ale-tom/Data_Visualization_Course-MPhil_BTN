@@ -7,21 +7,30 @@ output:
     lightbox: true
 ---
 
-This is an introduction to data visualization (in R).
+This is the second part of the introduction to data visualization (in R).
+
+In this practical we will learn:
+
+
+1. How to build plots from simpler to more complex
+2. How to communicate a story with annotations
+3. How to combine plots to convey a story
 
 
 We will be using `ggplot2` to plot our data. Let's make sure you have that installed. 
 
-```{r echo = FALSE}
+```{r message=FALSE, warning=FALSE, include=FALSE}
 if (!require("ggplot2")) install.packages("ggplot2")
-if (!require("tidyr")) install.packages("tidyr")
+if (!require("tidyverse")) install.packages("tidyverse")
+if (!require("patchwork")) install.packages("patchwork")
 if (!require("forcats")) install.packages("forcats")
+if (!require("ggforce")) install.packages("ggforce")
 library(ggplot2)
 library(tidyr)
 library(forcats)
 ```
 
-We will use the data from the Baker 2016 paper, again.
+Similarly to the previous practical, we will use the data from the Baker 2016 paper.
 
 ```{r}
 # Load in our data:
@@ -33,307 +42,251 @@ knitr::kable(
   head(baker2016[,c(26,9,16,18)]), # This is the table we will plot
   booktabs = TRUE) # We determine the formatting style as 'booktabs'
 ```
+# What is your story?
 
-# Basic Plot Types
-
-The basic structure of a gpplot looks as follows. You call `ggplot`, pass over some `data`, specify aesthetics using `aes()` and detmine the geometry using one (or several) of the following (or many more) options:
-
-- `geom_point()`
-- `geom_bar()`
-- `geom_boxplot()`
-- `geom_col()`
-- `geom_hist()`
-- `geom_density()`
-
-```{r eval=F, echo=F, message=FALSE, warning=FALSE}
-ggplot(data, aes(x = x)) + 
-  geom_bar()
-```
+In the first practical we noticed that almost the same proportion of participants reported that they were familiar/not familiar with the term 'Open Science'. The participants in the study came from different fields. One possibility is that the dichotomy in familiarity may be related to  how much participants trust the work in their field to be reproducible (e.g. less trust -> more familiarity). We show that this is not the case.
 
 
-Let's create our first plot of the data. We are plotting a barplot of the data's column `familiar_reproducibility` which (non surprisingly) shows us how familiary respondents were with the term 'Open Science'.
 
-```{r message=FALSE, warning=FALSE}
-ggplot(baker2016, aes(x= flagged)) + 
-  geom_bar()
-```
-
-Now imagine we wanted to use that same plot structure to plot some other variable, i.e the respondents research field. To do so, we'd just replace `x=familiar_reproducibility` with `x=field`. Easy. Remember, you can check what other columns are available by running `colnames(baker2016)` on the command line. Try out a few. 
+# 1.Build plots from simpler to more complex
 
 
-Let's try out a different plot type. Histograms can be a great way to plot data distributions. Let's plot participants' responses to the question *'What percentage of the research in your field do you think is reproducible?'*. The column you are looking for is called `proportion_reproducible`, so we would plot the histogram as follows:
+## Histogram for 1D data (e.g. counts)
+Let's plot again the histogram showing the overall familiarity with Open Science
+
+
+We use color to highlight. You can add a conditional argument to the `color` or `fill` options to highlight certain aspects of your plot i.e. we may want to highlight the participants who responded saying  either they weren't familiar enough with the term *Open Science* or reasonably familiar to highlight the dichotomoy.
+
+In order to highlight these aspects, we add the conditional argument `ifelse(flagged %in% c('A reasonable amount','Not enough'),1,2)` to our color option. Note `%in%` is appropriate here instead of `==` since we the conditional statements includes more than one condition. Wrapping it in `as.factor()` simply makes is a discrete variable, which would allow us to choose a discrete colormap. 
+
+Also, we would like plot the results from 'Too much' to 'Not enough' familiarity. This is achieved through the command `factor()` by specifying the desired order of levels and setting `ordered = TRUE`.
 
 ```{r message=FALSE, warning=FALSE}
-ggplot(baker2016, aes(x = proportion_reproducible)) + 
-  geom_histogram(stat="count")
-```
+#some labels are way too long
+baker2016 <- baker2016 %>%
+      mutate(field = str_replace(field,"Astronomy and planetary science","Astronomy")) %>%
+      mutate(field = str_replace(field,"Earth and Environmental Science","Earth Sciences")) %>%
+      mutate(flagged = str_replace(flagged,"A reasonable amount","Fair")) %>%
+      mutate(flagged = str_replace(flagged,"I am unsure","Unsure")) %>%
+      mutate(flagged = str_replace(flagged,"Not enough","Little")) %>%
+      mutate(flagged = str_replace(flagged,"Too much","Large"))
+baker2016$flagged <- factor(baker2016$flagged,levels = c('Large','Fair','Unsure', 'Little'), ordered = TRUE)
 
-# What is your message?
+hist.familiarity <- ggplot(baker2016, aes(x= flagged, fill = as.factor(ifelse(flagged %in% c('Fair','Little'),1,2)))) +
+  geom_bar()+
+  xlab('Response')+
+  ylab('Count')
 
-The participants in the study came from different fields. We may be interested in seeing how the responses differed between the fields. GGplot allows you to use color and grouping options in plots. I.e. we may create a stacked histogramm by telling ggplot to `fill` the bars by `field`, specifying `fill=field`. In other plots you may choose the option `color=field` - *color* usually refers to the outlines of plotted items, whereas *fill* well... "fills" them. Feel free to five this a try on the histogramm to see the difference.
-
-```{r message=FALSE, warning=FALSE}
-ggplot(baker2016, aes(group= field, fill=field, x = proportion_reproducible)) + 
-  geom_histogram(stat='count')
-```
-
-Remember we wanted to get an idea of how responses differed between the fields. What are we learning from the previous plot? Probably, not much. So while a histogramm may have helped us understand that most participants appear to have a great amount of trust in the results in their fields, a stacked histogramm might not be the plot that allows us to understand how results differ between fields. 
-
-A good way to disect differences between groups in your data is to use `facet_wrap` to create different panels for each group. Simply add `facet_wrap(facets = baker2016$field)` to get one histogram per group. Hopefully, this helps us see how the distributions differ between the fields. 
-
-
-```{r message=FALSE, warning=FALSE}
-ggplot(baker2016, aes(group= field, fill=field, x = proportion_reproducible)) + 
-  geom_histogram(stat = 'density') + 
-  facet_wrap(facets = baker2016$field)
-```
-
-## Fitting data
-
-The original Baker 2016 data unfortunately did not include continuous variables. I have created artificial data for us to practice plotting continous variables. `dummy_dat2` is an artificial response, and `dummy_age` is an age vector I created based on the age bins from the original data. 
-
-Let's plot the effects of `dummy_age` on `dummy_dat2`.
-
-```{r message=FALSE, warning=FALSE}
-ggplot(baker2016, aes(x=dummy_age, y=dummy_dat2)) + 
-  geom_point()
-```
-
-That looks like a decent correlation. Let's fit a linear model to this, regressing `dummy_age` on `dummy_dat2`. We can fit models to our data with `geom_smooth()`. Model options are linear (`lm`), GLM (`glm`), smoothing splines (`gam`), and loess regression (`loess`). We are using a simple linear model.  
-
-
-```{r message=FALSE, warning=FALSE}
-ggplot(baker2016, aes(x=dummy_age, y=dummy_dat2, color=as.factor(dummy_group))) + 
-  geom_point()+
-  geom_smooth(method = 'lm')
-```
-
-Lastly, I have also created an artificial variable `dummy_group`. You can analyse group effects on your model by simply specifying the color option with your grouping variable. This will then fit two separate linear regressions. In this case we learn that the grouping variable does not appear to have an effect on our data:
-
-
-```{r message=FALSE, warning=FALSE}
-ggplot(baker2016, aes(x=dummy_age, y=dummy_dat2, color=as.factor(dummy_group))) + 
-  geom_point()+
-  geom_smooth(method = 'lm')
+#plot it
+hist.familiarity 
 ```
 
 
-# Statistics in figures - or how not to fool your audience (and yourself)
+## Scatterplot - 2D data: Plot a relationship between variables
 
-Choosing how to plot your data is crucial to communicate your message. As a first step though you may often use plots to get an idea of what your data looks like. In both cases, make sure to choose a representation that enables you to understand your data well. 
+We want to check whether the dichotomy in high and low familiarity with Open Science is somehow a reflection of different levels of trust between fields.
 
-Here, I am creating an artificial dataset to illustrate some points on how (not to) plot your data.
+First of all, we cannot use raw count numbers because they differ between fields. Also, we need a more 'compact' measure to summmarise trust and familiarity.
 
-```{r message=FALSE, warning=FALSE}
-response1 = rnorm(n = 1000, mean = 10, sd = c(1,2))
-response2 = rnorm(n = 1000, mean = c(2,3), sd = 1)
-response3 = rnorm(n = 1000, mean = c(4,5), sd = c(1,1.5))
-group = rep(letters[1:2], length.out = 100)
-df = data.frame(group = as.factor(group), response1=response1, response2=response2, response3=response3)
-```
+An easy solution, is to calculate a ratio for each field between those who are familiar/unfamiliar with open science as well as a ratio between the number of participants who trust (>50% reproducibility) or not trust (<50% reproducibility) their field. This is accomplished within the first lines of code where two new columns (ratio.Familiarity and ratio.Trust) are created to accommodate the ratios. The pipe `%>%` operator simply indicates that the argument on the left (or its outcome) is the input to the argument on the right. `group_by(field)` allow to execute the  operations in `mutate()` (i.e. creation of a new column) separately for each level of field. For more information you can have a look at the 'tidyverse' web-page.
 
-Let's have a look at `response1`. You may think it's a good idea to first plot this data as a barplot, displaying the mean value for `response1` in groups `a` and `b`. This is what such a plot would look like:
+We use a scatterplot and a linear regression to visualise the relationship between the ratios.
 
-```{r message=FALSE, warning=FALSE}
-ggplot(df, aes(x=group,y=response1, color=group, fill=group, alpha=0.2)) + 
-  geom_bar(stat='summary', fun=mean) 
-```
-
-Now that's not very helpful. It looks as if both groups are the same. 
-
-Now you may have noticed that when I created the data, I intentionally created both groups to have the same mean value. However, their standard deviations are very different!
-
-The following plots display the exact same data - but now in a more useful format. 
-
-```{r, figures-side, fig.show="hold", out.width="50%", message=FALSE, warning=FALSE}
-par(mfrow=c(2,1))
-ggplot(df, aes(x=group,y=response1, color=group, fill=group, alpha=0.2)) + 
-  geom_violin()
-
-ggplot(df, aes(x=group,y=response1, color=group, fill=group, alpha=0.2)) + 
-  geom_boxplot()
-```
-
-Consider having a play around with `response2` and `response3` to see what kind of plots hide or highlight the differences between those variables. 
-
-
-# Wide and Long Format
-
-The data as it is right now is in the so-called *wide format*. For many types of plots that maynot be useful. 
-
-Data in the *wide format* displays repeated responses in a single row, and each response is in a separate column. Let's have a look at the question: *'Have you ever tried to replicate a result, either your own or someone elses, and failed?'*. Subjects can say yes or no to both the idea that they have tried to replicate someone else's results and failed, coded in `try_failOwn`, and that they have tried to replicate their own work and failed, coded in `try_failElse`. In the *wide format* each subject is a row, and each responses is coded as their own column: 
-
-```{r, echo=FALSE, message=FALSE, warning=FALSE}
-knitr::kable(
-  head(baker2016[,c(1,20,21,27)]), # This is the table we will plot
-  booktabs = TRUE) # We determine the formatting style as 'booktabs'
-```
-
-An alternative representation would be to have a column indicating which part of the question subjects repsonded to, i.e. *own* or *someone else's*, with each subject being represented twice: One row encodeing their response to the first, the second row encoding their response to the second question. 
-
-```{r, fig.show="hold", out.width="50%", message=FALSE, warning=FALSE}
-tmp = gather(baker2016[,c(1,20,21,27)], question, response, 2:3)
-knitr::kable(
-  head(tmp[order(tmp$responseid),]), # This is the table we will plot
-  booktabs = TRUE)
-```
-
-In order to get our data into this format, we make use of the `gather` function from the `tidyr` package. This functions takes in the arguments 
-
-(1) `data`, i.e. the data in wide format to be transformed into long format
-(2) `key`, the variable name of a new column which will enumerate the different categories possible
-(3) `value`, the variable name of a new column which will contain the actual data
-(4) and a selection of columns which will be converted into the entries in your new column. 
-
-```{r, fig.show="hold", out.width="50%",message=FALSE, warning=FALSE}
-data_wide = baker2016[,c(20,21,27)] # This is the data we will be using for our plot in wide format 
-data_long = gather(data = data_wide, key = question, value = response, 1:2) # Convert the data into long format
-```
-
-The data in wide format allows us to plot something like this for example:
-
-```{r message=FALSE, warning=FALSE}
-# Delete responses where participants couldn't remember the result
-data_long = data_long[-which((data_long$response == "I can't remember")),]
-
-ggplot(data_long[data_long$question=='try_failElse',], aes(x = field, fill=response)) + 
-  geom_bar(aes(y = ..count../tapply(..count.., ..x.. ,sum)[..x..]), position = 'dodge',group = 1) +
-  scale_fill_manual(values = c("red", "orange"))+
-  coord_flip()
-```
-
-# Prettier plots
-You can change a whole range of aspects about a theme. A comprehensive list of options can be found [here](https://ggplot2.tidyverse.org/reference/theme.html). Here are a few basic things to get started with:
-
-
-## Color
-You can can change the colors of your plot manually, or by using a colormap. In order to manually determine the colors used, add `scale_fill_manual(value = c('color1','color2',...))`. 
-
-R also supplies a range of predefined colormaps you can use. Have a look on page 4 of this [cheatsheet](https://www.nceas.ucsb.edu/sites/default/files/2020-04/colorPaletteCheatsheet.pdf) for a decent overview. 
 
 ```{r}
-ggplot(data_long[data_long$question=='try_failElse',], aes(x = field, fill=response)) + 
-  geom_bar(aes(y = ..count../tapply(..count.., ..x.. ,sum)[..x..]), position = 'dodge',group = 1) +
-  scale_fill_manual(values = c("red", "orange"))+
-  coord_flip()
-```
+#calculate ratio between confidence/non confidence on general knowledge of reproducibility 
+baker2016 <- baker2016 %>% group_by(field) %>% mutate(ratio.Familiarity = sum(flagged == 'Fair')/sum(flagged == 'Little'))
 
-Instead of manually defining the colors above, we could also have used a predefined discrete color scale, by adding `scale_fill_brewer(palette = 'Your brewer color scale')`.
+#calculate ratio between confidence/non confidence on  reproducibility in their own field
+baker2016 <- baker2016 %>% group_by(field) %>% mutate(ratio.Trust = sum(as.numeric(sub("%", "",proportion_reproducible)) >50)/sum(as.numeric(sub("%", "",proportion_reproducible)) <51))
 
-```{r message=FALSE, warning=FALSE}
-ggplot(data_long[data_long$question=='try_failElse',], aes(x = field, fill=response)) + 
-  geom_bar(aes(y = ..count../tapply(..count.., ..x.. ,sum)[..x..]), position = 'dodge',group = 1) +
-  scale_fill_brewer(palette = 'Set3')+
-  coord_flip()
-```
 
-Lastly, let's consider using color to highlight. You can add a conditional argument to the `color` or `fill` options to highlight certain aspects of your plot. I.e. we may want to highlight the participants who responded saying they weren't familiar enough with the term *Open Science* - for example in order to convince the department to run additional workshops on Open Science. 
+#plot
+scatterPlot <- ggplot(baker2016,aes(ratio.Trust, ratio.Familiarity, color=field)) + 
+  # show data points with size 3
+  geom_point(size = 3) + 
+  # set x/y axes limits
+  xlim(0,5)+ylim(0,5)+
+  # we want to see a linear regression (this is for illustrative purposes, analyses should be done aside)
+  geom_smooth(method = "lm", se=FALSE, color="black", formula = y ~ x)+
+  # use a minimalist theme to remove clutter (e.g. background color, axes)
+  theme_minimal()
 
-In order to highlight this aspect, we add the conditional argument `ifelse(flagged=='Not enough',1,2)` to our coloroption. Wrapping it in `as.factor()` simply makes is a discrete variable, which would allow us to choose a discrete colormap. 
-
-```{r message=FALSE, warning=FALSE}
-ggplot(baker2016, aes(x= flagged, fill = as.factor(ifelse(flagged=='Not enough',1,2)))) + 
-  geom_bar()+
-  xlab('Response')+
-  ylab('Count')+
-  ggtitle("How familiar are you with the term 'Open Science'")
-```
-
-## Reordering factor
-In the previous plots, the order of bars wasn't necessarily helpful at making the graph more easily understandable. Sometimes small things like reordering bars can make the figure more visually appealing and help direct the viewer's attention to your message. 
-
-When factor variables are plotted, the ordering is done by the factor levels. In our case that's the variable `flagged`. You can check what your factor levels are using `levels(baker2016$flagged)`. Currently the order is `"A reasonable amount","I am unsure","Not enough","Too much"`. 
-
-You could choose to manually reorder your factor levels, or simply make use of the `fct_infreq()` function from the `forcats` package, which will sort your factor levels by frequency. 
-
-```{r message=FALSE, warning=FALSE}
-ggplot(baker2016, aes(x= fct_infreq(flagged), fill = as.factor(ifelse(flagged=='Not enough',1,2)))) + 
-  geom_bar()
+#plot it
+scatterPlot
 ```
 
 
-## Point shapes
+## Heatmap - 3D data: Plot a relationship between variables
 
-You can edit the shapes of your scatter points using a shape from this [table](http://www.sthda.com/english/wiki/r-plot-pch-symbols-the-different-point-shapes-available-in-r) by adding `shape` to `geom_point()`. 
+In our exploratory visualization we have used density plots to visualise how the distributions of values of trust in reproducibility differ between the fields
 
-```{r message=FALSE, warning=FALSE}
-ggplot(baker2016, aes(x=dummy_age, y=dummy_dat2)) + 
-  geom_point(shape=8)+
-  geom_smooth(method = 'lm')
-```
-
-## Alpha
-A super simple way to make your plots look softer can be to add transparency to them. Going back to our scatter plot from earlier, this may actually help to direct attention to important feature of the graph like your regression line and make overlapping data points more distinguishable. Simply add the argument `alpha`.
-
-```{r message=FALSE, warning=FALSE}
-ggplot(baker2016, aes(x=dummy_age, y=dummy_dat2, alpha = 0.2, color=as.factor(dummy_group))) + 
-  geom_point()+
-  geom_smooth(method = 'lm')
-```
-
-## Axis labels
-
-Add a title using `ggtitle('Your title goes here.')` and change the axis lables using `xlab('X axis title')` and `ylab('X axis title')`.
-
-```{r message=FALSE, warning=FALSE}
-ggplot(baker2016, aes(x= fct_infreq(flagged), fill = as.factor(ifelse(flagged=='Not enough',1,2)))) + 
-  geom_bar()+
-  xlab('Response')+
-  ylab('Count')+
-  ggtitle("How familiar are you with the term 'Open Science'")
-```
-
-## Change the theme:
-Ggplot has built in [themes](https://ggplot2.tidyverse.org/reference/ggtheme.html) that you can make use of. These include: `theme_bw()`, `theme_classic()`, and `theme_void()`. Try out a few and see the effects on this plot:
-
-```{r message=FALSE, warning=FALSE}
-ggplot(baker2016, aes(x= fct_infreq(flagged), fill = as.factor(ifelse(flagged=='Not enough',1,2)))) + 
-  geom_bar()+
-  xlab('Response')+
-  ylab('Count')+
-  ggtitle("How familiar are you with the term 'Open Science'")+
-  theme_bw()
-```
-
-## Edit legend
-
-By default, ggplot uses the factor names from your data in the legend, and the respective variable name as the title. 
-
-There are a variety of ways you can edit the legend. Here, we will use `labs()`. 
-
-Since our legend refers to the fill color of the plot, you will have to reference *fill* when editing it. 
-You may not want to have a legent title at all, in which case you could add: `labs(fill='')`. Or maybe you would like to rename it to *Questionnaire Response* using `labs(fill='Questionnaire Response')`? Alternatively, you could also decide the legend isn't adding much value here and leave it out entirely by adding `legend.position = "none"`.
-
-
-```{r message=FALSE, warning=FALSE}
-ggplot(baker2016, aes(x= fct_infreq(flagged), fill = as.factor(ifelse(flagged=='Not enough',1,2)))) + 
-  geom_bar()+
-  xlab('Response')+
-  ylab('Count')+
-  ggtitle("How familiar are you with the term 'Open Science'")+
-  theme_bw() +
-  labs(fill='') 
+```{r}
+ggplot(baker2016, aes(group= field, fill=field, x = proportion_reproducible)) + 
+  geom_histogram(stat = 'density') + 
+  facet_wrap(~field)
 ```
 
 
-## Save plots
-Now that we have created lovely plots, we may want to save them as files in order to share and publish them. An easy way to do so is to click on `Export` in the *Plots* panel. 
+That was useful for us to get an idea of how the data were distributed. However now we want to convey the message that there are not major differences between fields in that they all share a high level of trust.
+For this purpose, we use a more compact visualisation using a heatmap. 
 
-More conveniently maybe, we can add a bit of code for the plots to automatically autput to a location on our computer. By wrapping your plot in `pdf('/path/to/your/file.pdf', width, height) ... dev.off()`, `png('/path/to/your/file.png', width, height) ... dev.off()`, or `jpeg('/path/to/your/file.jpeg', width, height) ... dev.off()` you can save your plot to different file formats. Note that weirdly `width` and `height` are in *inches* for `pdf()`, whereas for `jpeg()` and `png()` they are in *pixels*. By default the plot should save to your current working directory, so you should change the path to whereever you would love to output the file to. 
+Note, we first summarise the data using proportions as we are interested in relative values as opposed to raw counts.
+
 
 ```{r message=FALSE, warning=FALSE}
-pdf('tmp.pdf',4,5)
-ggplot(baker2016, aes(x= fct_infreq(flagged), fill = as.factor(ifelse(flagged=='Not enough',1,2)))) + 
-  geom_bar()+
-  xlab('Response')+
-  ylab('Count')+
-  ggtitle("How familiar are you with the term 'Open Science'")+
-  theme_bw() +
-  theme(legend.position = "none")
-dev.off()
+
+# create a new dataframe df
+df <- baker2016 %>% 
+      #select only two columns
+      select(c('proportion_reproducible','field')) %>% 
+      #perform the analyses on each level of proportion_reproducible by field
+      group_by(field,proportion_reproducible) %>%
+      #count the items for each level
+      summarise(n = n()) %>%
+      #calculate proportion for each level
+      mutate(freq = n/sum(n)) 
+```
+```{r}
+      
+
+#Assign color variables
+col1 = "#d8e1cf" 
+col2 = "#438484"
+
+
+heatmap <- ggplot(df, aes(proportion_reproducible, field)) + 
+  #select the plot type and filling, separation lines = white
+  geom_tile(aes(fill = freq),colour = "white", na.rm = TRUE) +
+  #use the assigned colors above for the filling
+  scale_fill_gradient(low = col1, high = col2) +  
+  theme_bw() + theme_minimal() + 
+  theme(panel.grid.major = element_blank(), panel.grid.minor = element_blank())
+
+heatmap
+
+
+
+```
+
+
+
+
+
+# 2.Communicate a story with annotations
+
+We will use  {ggforce} to annotate our plots
+```{r}
+library(ggforce)
+
+```
+
+
+Let's remove the legend and add a title and subtitle
+
+```{r}
+hist.familiarity <- hist.familiarity + 
+  theme_minimal()+
+  #we do not need a legend as colors are to attract the attention
+  theme(legend.position = 'none')+
+  ggtitle('"Open Science" familiarity')
+  
+hist.familiarity  
+```
+
+
+
+
+The scatter plot looks quite complex and needs some extra information to become completely clear.
+We will add text to indicate the meaning of illustrative data points using `geom_mark_ellipse` from {ggforce}. The `filter = field == 'Astronomy and planetary science'` option indicates which data point(s) need to be highlighted.
+
+We also add a title and subtitle to convey the main message of the plot
+
+```{r}
+
+scatterPlot<- scatterPlot+
+  #add  text to make the figure more understandable at first glance
+  geom_mark_ellipse(aes(filter = field == 'Astronomy', label = 'Astronomy',
+                                  description = 'Low familiarity with Open Science but high trust in the field ')) +
+  geom_mark_ellipse(aes(filter = field == 'Medicine', label = 'Medicine',
+                                  description = 'Low familiarity with Open Science and low trust in the field ')) +
+#Tidy up labels for readability
+   xlab('Trust (ratio)') + ylab('Familiarity (ratio)') +
+#Add title and subtitle so that readers have immediate understanding of the plot  
+  ggtitle("Familiarity with Open Science vs Trust in the field",subtitle = 'Linear regression (black line) shows no effect')
+
+# plot it
+scatterPlot
+```
+
+
+
+Finally we will add title and subtitle to the heatmap and
+
+
+```{r}
+heatmap<- heatmap+
+  #add legend title
+  guides(fill=guide_legend(title="Prop"))+
+  #add title and xy labels)
+  labs(title = "Trust in reproducibility", x = "Percentage reproducibility", y = "Field") 
+
+#plot it
+heatmap
+```
+
+
+
+
+
+# 3.combine plots to convey a story
+
+```{r}
+library(patchwork)
+```
+We will use {patchwork} to combine plots together into a figure. An alternative package is {Cowplot}. 
+
+!["Patchwork offers an intuitive syntax"](patchwork.png)
+
+!["Dimensions and layouts are easily customised"](patchwork2.png)
+
+
+```{r}
+hist.familiarity + heatmap
+```
+
+Add tag to plots
+
+```{r}
+hist.familiarity + theme(plot.margin = unit(c(30,30,30,0), "pt"))+heatmap + plot_annotation(tag_levels = 'A') + plot_annotation(title = 'Familiarity with Open Science and Trust in preproducibility',
+                                                                                                                               subtitle =  'High discrepancy in familiarity but overall high trust in reproducibility',
+                                                                                                                               caption = 'Disclaimer: None of these plots are insightful')
+```
+
+
+
+```{r}
+scatterPlot+plot_layout(guides = 'collect') + plot_annotation(tag_levels = c('A','1'), tag_prefix = 'Fig. ', tag_sep = '.', tag_suffix = ':') & theme(plot.tag=element_text(size = 10)) 
+```
+
+
+
+
+
+
+
+Combine altogether. `plot_layout(guides = 'collect')` is needed to align the legends.
+`theme(plot.margin = unit(c(0,60,0,0), "pt"))` is to add some space between the plots.
+It will require a bit of fiddling to obtain adjust the figures (e.g. for readibility of percentages)
+
+
+
+```{r}
+scatterPlot / (hist.familiarity | heatmap)
 ```
 
 # Further Resources
 
 This [website](https://www.r-graph-gallery.com/index.html) could be considered the bible of plotting data in R. 
 This ggplot [cheatsheet](https://rstudio.com/wp-content/uploads/2015/03/ggplot2-cheatsheet.pdf) is great to have at hand. 
+[Here](https://patchwork.data-imaginist.com/articles/guides/layout.html) you can find info on how to control layouts with patchwork.
